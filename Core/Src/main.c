@@ -158,34 +158,30 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  uint32_t last = 0xDEADBEEF;
+//  uint32_t last = 0xDEADBEEF;
+//  uint32_t delay = 100;
   uint32_t phase = 0;
   while (1)
   {
       /* Get TIM2 current count value */
-      // phase = htim2.Instance->CNT;
-      phase = (__HAL_TIM_GET_COUNTER(&htim2) >> 1);
-      phase = phase % 360;
+      // delay = htim2.Instance->CNT;
+      // delay = (__HAL_TIM_GET_COUNTER(&htim2) >> 1);
+      phase = (phase+1) % 360;
 
-      /* operate on changes in value */
-      if (phase != last)
-      {
-          last = phase;
-//          printf("%d\r\n", (int)phase);
+#define GAIN_DIVISOR 2
+      uint32_t channel_a = sine[phase] / GAIN_DIVISOR;
+      uint32_t channel_b = sine[(phase + 120) % 360] / GAIN_DIVISOR;
+      uint32_t channel_c = sine[(phase + 240) % 360] / GAIN_DIVISOR;
 
-#define GAIN_DIVISOR 1
-          uint32_t channel_a = sine[phase] / GAIN_DIVISOR;
-          uint32_t channel_b = sine[(phase + 120) % 360] / GAIN_DIVISOR;
-          uint32_t channel_c = sine[(phase + 240) % 360] / GAIN_DIVISOR;
+//          printf("%d, %d, %d, %d\r\n", (int)phase, (int)channel_a, (int)channel_b, (int)channel_c);
 
-          printf("%d, %d, %d, %d\r\n", (int)phase, (int)channel_a, (int)channel_b, (int)channel_c);
+       /* these should be back-to-back writes */
+       /* TODO: Disable/enable the update event before/after writing timer CCR registers */
+      __HAL_TIM_SetCompare(&htim1, TIM_CHANNEL_1, channel_a);
+      __HAL_TIM_SetCompare(&htim1, TIM_CHANNEL_2, channel_b);
+      __HAL_TIM_SetCompare(&htim1, TIM_CHANNEL_3, channel_c);
 
-           /* these should be back-to-back writes */
-           /* TODO: Disable/enable the update event before/after writing timer CCR registers */
-          __HAL_TIM_SetCompare(&htim1, TIM_CHANNEL_1, channel_a);
-          __HAL_TIM_SetCompare(&htim1, TIM_CHANNEL_2, channel_b);
-          __HAL_TIM_SetCompare(&htim1, TIM_CHANNEL_3, channel_c);
-      }
+      HAL_Delay(1);
 
     /* USER CODE END WHILE */
 
